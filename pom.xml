@@ -15,6 +15,7 @@
     <modules>
         <module>c3slot5-comparison-composite</module>
         <module>c3slot5-sandbank</module>
+        <module>c3slot5-sandbank-ridge</module>
     </modules>
 
 
