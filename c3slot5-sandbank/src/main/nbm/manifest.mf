@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Java-Dependencies: Java > 1.8
+OpenIDE-Module-Display-Category: C3SLOT5
+AutoUpdate-Show-In-Client: true
+AutoUpdate-Essential-Module: false
+OpenIDE-Module-Layer: layer.xml
+OpenIDE-Module-Long-Description: C3SLOT5 sandbank

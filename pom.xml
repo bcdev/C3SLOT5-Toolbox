@@ -14,7 +14,9 @@
 
     <modules>
         <module>c3slot5-comparison-composite</module>
+        <module>c3slot5-sandbank</module>
     </modules>
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
