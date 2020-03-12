@@ -25,8 +25,6 @@ public class PreparingOfSourceBand {
                                      int[] flagArray) {
 
 
-        double[] preparedData = new double[sourceData.length];
-        System.arraycopy(sourceData, 0, preparedData, 0, sourceData.length);
 
         for (int j = 0; j < sourceHeight; j++) {
             for (int i = 0; i < sourceWidth; i++) {
@@ -35,7 +33,6 @@ public class PreparingOfSourceBand {
                     }
                 }
             }
-        System.arraycopy(preparedData, 0, sourceData, 0, sourceData.length);
     }
 }
 

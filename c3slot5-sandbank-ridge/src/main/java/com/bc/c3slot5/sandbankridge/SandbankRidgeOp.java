@@ -49,36 +49,60 @@ public class SandbankRidgeOp extends Operator {
     @Parameter(rasterDataNodeType = Band.class)
     private String flagBandName;
 
+
+    //Detect lines parameters
+
+//     @param sigma
+//     //            A value which depends on the line width: sigma greater or equal to
+//    //            width/(2*sqrt(3))
+//     @param upperThresh
+//     //           Upper hysteresis thresholds used in the linking algorithm (Depends
+//     //            on the maximum contour brightness (greyvalue))
+//     @param lowerThresh
+//    //            Lower hysteresis thresholds used in the linking algorithm (Depends
+//    //            on the minimum contour brightness (greyvalue)).
+//     @param minLength
+//     //           the min length
+//     @param maxLength
+//     //            the max length
+//     @param isDarkLine
+//     //            True if the line darker than the background
+//     @param doCorrectPosition
+//     //            Determines whether the line width and position correction should
+//     //            be applied
+//     @param doEstimateWidth
+//     //           Determines whether the line width should be extracted
+//     @param doExtendLine
+//    //            Extends the detect lines to find more junction points
+
+
+
+
     @TargetProduct
     private Product targetProduct;
+
 
     private String targetBandNameGradientMagnitude = "GradientMagnitude";
     private String targetBandNameGradientDirection = "GradientDirection";
     private String targetBandNameFlag = "Flag_Cloud_Land_Ocean_NoData";
-    private String targetBandNameFinalSandBankssMag = "Final Fronts - Magnitude";
-    private String targetBandNameFinalSandBankssDir = "Final Fronts - Direction";
     private String targetBandNameSandBanksID = "SandBankID";
     private String targetBandNameSandBanksBeltMag = "SandBankBeltMag";
     private String targetBandNameSandBanksBeltDir = "SandBankBeltDir";
-    private String targetBandNameSandBanksBeltID = "SandBankBeltID";
+    private String targetBandNameSandBanksBelt = "SandBankBelt";
 
     private Band targetBandCopySourceBand;
     private Band targetBandGradientMagnitude;
     private Band targetBandGradientDirection;
     private Band targetBandFlag;
-    private Band targetBandFinalSandBanksMag;
-    private Band targetBandFinalSandBanksDir;
     private Band targetBandSandBanksBeltMag;
     private Band targetBandSandBanksBeltDir;
-    private Band targetBandSandBanksBeltID;
-    private Band targetBandSandBanksID;
+    private Band targetBandSandBanksBelt;
+
 
 
     private String operator;
     private String filterGradient;
     private String algorithm;
-    private String filterHistogram;
-    private int growCloud;
     private String rounding;
     private double roundingInputData;
     private String hysteresis;
@@ -89,8 +113,7 @@ public class SandbankRidgeOp extends Operator {
     private static final String GAUSS_FILTER = "Gaussian Filter";
     private static final String MEDIAN_FILTER = "Median Filter";
     private static final String LAPLACE_FILTER = "Laplace Filter";
-    private static final String SMOS_FILTER = "SMOS Filter";
-    private static final String ADAPTIVER_MEAN_FILTER = "adaptiver Mean Filter";
+
 
     private static final String CANNY_HYSTERESIS = "Hysteresis according to Canny Algorithm";
     private static final String SIMPLE_HYSTERESIS = "Simple Hysteresis Algorithm";
@@ -103,36 +126,21 @@ public class SandbankRidgeOp extends Operator {
     private double kernelEdgeValue;
     private double kernelCentreValue;
     private double weightingFactor;
-    private double maxThresholdHysteresis = 0.1;
-    private double minThresholdHysteresis = 0.09;
-    private static final int filterBoarder = 11;
 
     static final int fillKernelRadius = 1;
     static final int medianFilterKernelRadius = 2;
     static final int conMedianFilterKernelRadius = 2;
     static final int gaussFilterKernelRadius = 2;
     static final int laplaceFilterKernelRadius = 2;
-    static final int smosFilterKernelRadius = 12;
     static final int convolutionFilterKernelRadius = 1;
-    static final int nonMaxSuppressionKernelRadius = 1;
-    //static final int maxKernelRadius = fillKernelRadius + filterKernelRadius + convolutionFilterKernelRadius + nonMaxSuppressionKernelRadius; // 5!
     static final int maxKernelRadius = 30; //20;
-
-    static final int frontValue = 1;
-    static final int windowOverlap = 50;
-    static final int standardHistogramBins = 32;
     static final int minKernelRadius = 0;
 
-    static double beltThreshold = 0.15;
-    static double froggy = 2.5;//1.5;
-    static final int beltRepeatValue = 3;
-
-
-    private int totalParameterNumber = 0; //Parameter , e.g. SST
-    private int totalFrontBeltPixelNumber = 0;
     private double maxFrontBeltMagnitude = 0.;
-    private int thresholdFrontBeltPixelNumber = 0;
     private double acceptableFrontBeltPixel = 0.025;
+    static double thresholdRidgeDetection = 5.0;
+
+
 
 
     /**********************************************************************************************/
@@ -150,18 +158,12 @@ public class SandbankRidgeOp extends Operator {
         targetBandGradientMagnitude = targetProduct.addBand(targetBandNameGradientMagnitude, ProductData.TYPE_FLOAT64);
         targetBandGradientDirection = targetProduct.addBand(targetBandNameGradientDirection, ProductData.TYPE_FLOAT64);
         targetBandFlag = targetProduct.addBand(targetBandNameFlag, ProductData.TYPE_INT16);
-        targetBandFinalSandBanksMag = targetProduct.addBand(targetBandNameFinalSandBankssMag, ProductData.TYPE_FLOAT64);
-        targetBandFinalSandBanksDir = targetProduct.addBand(targetBandNameFinalSandBankssDir, ProductData.TYPE_FLOAT64);
         targetBandSandBanksBeltMag = targetProduct.addBand(targetBandNameSandBanksBeltMag, ProductData.TYPE_FLOAT64);
         targetBandSandBanksBeltDir = targetProduct.addBand(targetBandNameSandBanksBeltDir, ProductData.TYPE_FLOAT64);
-        targetBandSandBanksBeltID = targetProduct.addBand(targetBandNameSandBanksBeltID, ProductData.TYPE_INT16);
-        targetBandSandBanksID = targetProduct.addBand(targetBandNameSandBanksID, ProductData.TYPE_INT16);
+        targetBandSandBanksBelt = targetProduct.addBand(targetBandNameSandBanksBelt, ProductData.TYPE_INT16);
 
         operator = SCHARR_OPERATOR;
         filterGradient = CONTEXTUAL_MEDIAN_FILTER;
-        algorithm = SIED_ALGORITHM;
-        filterHistogram = MEDIAN_FILTER;
-        growCloud = 1;
         rounding = NO_ROUNDING;
         roundingInputData = 0.025;
         hysteresis = SIMPLE_HYSTERESIS;
@@ -193,12 +195,10 @@ public class SandbankRidgeOp extends Operator {
         Tile targetTileGradientMagnitude = targetTiles.get(targetBandGradientMagnitude);
         Tile targetTileGradientDirection = targetTiles.get(targetBandGradientDirection);
         Tile targetTileBandFlag = targetTiles.get(targetBandFlag);
-        Tile targetTileSandBanksID = targetTiles.get(targetBandSandBanksID);
-        Tile targetTileSandBanksBeltID = targetTiles.get(targetBandSandBanksBeltID);
+        Tile targetTileSandBanksBelt = targetTiles.get(targetBandSandBanksBelt);
         Tile targetTileSandBanksBeltMag = targetTiles.get(targetBandSandBanksBeltMag);
         Tile targetTileSandBanksBeltDir = targetTiles.get(targetBandSandBanksBeltDir);
-        Tile targetTileFinalSandBanksMag = targetTiles.get(targetBandFinalSandBanksMag);
-        Tile targetTileFinalSandBanksDir = targetTiles.get(targetBandFinalSandBanksDir);
+
 
 
         int sourceWidth = sourceRectangle.width;
@@ -221,9 +221,8 @@ public class SandbankRidgeOp extends Operator {
         makeFilledBand(flagArray, sourceWidth, sourceHeight, targetTileBandFlag, SandbankRidgeOp.maxKernelRadius);
         // copy source data for histogram method
 
-        double[] histogramSourceData = new double[sourceArray.length];
-        System.arraycopy(sourceArray, 0, histogramSourceData, 0, sourceArray.length);
-
+        double[] ridgeDetectorSourceData = new double[sourceArray.length];
+        System.arraycopy(sourceArray, 0, ridgeDetectorSourceData, 0, sourceArray.length);
 
         /**************************************************************************/
         /************************** Gradient Method   *****************************/
@@ -273,245 +272,16 @@ public class SandbankRidgeOp extends Operator {
                 kernelCentreValue,
                 weightingFactor);
 
-        double[][] nonMaxSuppressedGradientData = new double[2][sourceWidth * sourceHeight];
-        double[][] nonMaxImprovedSuppressedGradientData = new double[2][sourceWidth * sourceHeight];
 
-        double[][] mafiozoDeLaProspettoGradientData = new double[2][sourceWidth * sourceHeight];
-        double[][] edgeLinkedGradientData = new double[2][sourceWidth * sourceHeight];
-
-        // standard thinning method according to Canny - disadvantage: lags
-        NonMaximumSuppression nonMaximumSuppressedSourceBand = new NonMaximumSuppression();
-        nonMaxSuppressedGradientData = nonMaximumSuppressedSourceBand.nonMaxSuppressionOfSourceBand(
-                gradientSourceData,
-                sourceWidth,
-                sourceHeight);
-
-        // Endpoints
-        EndPointsFound endPointsFound = new EndPointsFound();
-        double[] endPointsFoundData = endPointsFound.compute(nonMaxSuppressedGradientData,
-                sourceWidth,
-                sourceHeight);
-
-        // standard edge linking method according to Canny - disadvantage: lags
-        if (CANNY_HYSTERESIS.equals(hysteresis)) {
-            EdgeLinkingHysteresis edgeLinkingOfSourceBand = new EdgeLinkingHysteresis();
-            edgeLinkingOfSourceBand.edgeLinkingOfSourceBand(
-                    gradientSourceData,
-                    nonMaxSuppressedGradientData,
-                    sourceWidth,
-                    sourceHeight,
-                    maxThresholdHysteresis, // FrontsOperator.weightingFactor,
-                    minThresholdHysteresis, // FrontsOperator.weightingFactor,
-                    edgeLinkedGradientData);
-        }
-
-        // improved thinning method according to Canny - advantage: no lags, but frayed fronts
-        if (SIMPLE_HYSTERESIS.equals(hysteresis)) {
-
-            ImprovedNonMaximumSuppression improvedNonMaximumSuppressedSourceBand = new ImprovedNonMaximumSuppression();
-            nonMaxImprovedSuppressedGradientData = improvedNonMaximumSuppressedSourceBand.improvedNonMaxSuppressionOfSourceBand(
-                    gradientSourceData,
-                    sourceWidth,
-                    sourceHeight);
-
-            // filling of gaps
-            MafiozoDeLaProspetto mafiozoDeLaProspettoSourceBand = new MafiozoDeLaProspetto();
-            mafiozoDeLaProspettoSourceBand.mafiozoDeLaProspettoOfSourceBand(
-                    nonMaxSuppressedGradientData,
-                    nonMaxImprovedSuppressedGradientData,
-                    endPointsFoundData,
-                    sourceWidth,
-                    sourceHeight,
-                    flagArray);
-
-            //makeFilledBand(nonMaxSuppressedGradientData, sourceWidth, sourceHeight, testTile, 0, maxKernelRadius);
-
-            SimpleEdgeLinkingHysteresis simpleEdgeLinkingOfSourceBand = new SimpleEdgeLinkingHysteresis();
-            simpleEdgeLinkingOfSourceBand.simpleEdgeLinkingOfSourceBand(
-                    gradientSourceData,
-                    nonMaxSuppressedGradientData,
-                    sourceWidth,
-                    sourceHeight,
-                    maxThresholdHysteresis, // FrontsOperator.weightingFactor,
-                    minThresholdHysteresis, // FrontsOperator.weightingFactor,
-                    edgeLinkedGradientData);
-        }
-
-
-        /**************************************************************************/
-        /************************** Histogram Method  *****************************/
-        /**************************************************************************/
-        /* Rounding: parameter: decimal */
-
-        if (YES_ROUNDING.equals(rounding)) {
-            RoundingOfSourceBand roundedSourceBand = new RoundingOfSourceBand();
-            roundedSourceBand.roundedOfSourceBand(histogramSourceData,
-                    sourceWidth,
-                    sourceHeight,
-                    roundingInputData);
-        }
-
-        if (CONTEXTUAL_MEDIAN_FILTER.equals(filterHistogram)) {
-            Filter filter = new ContextualMedianFilter();
-            filter.compute(histogramSourceData,
-                    sourceWidth,
-                    sourceHeight,
-                    flagArray,
-                    conMedianFilterKernelRadius);
-
-        } else if (MEDIAN_FILTER.equals(filterHistogram)) {
-            Filter filter = new MedianFilter();
-            filter.compute(histogramSourceData,
-                    sourceWidth,
-                    sourceHeight,
-                    flagArray,
-                    medianFilterKernelRadius);
-
-        } else if (GAUSS_FILTER.equals(filterHistogram)) {
-            Filter filter = new GaussFilter();
-            filter.compute(histogramSourceData,
-                    sourceWidth,
-                    sourceHeight,
-                    flagArray,
-                    gaussFilterKernelRadius);
-        } else if (LAPLACE_FILTER.equals(filterGradient)) {
-            Filter filter = new LaplaceFilter();
-            filter.compute(sourceArray,
-                    sourceWidth,
-                    sourceHeight,
-                    flagArray,
-                    laplaceFilterKernelRadius);
-        }
-
-        ArrayNaNisator preparedArrayNaN = new ArrayNaNisator();
-        preparedArrayNaN.preparedArrayNaNisator(histogramSourceData,
-                sourceWidth,
-                sourceHeight,
-                flagArray);
-
-        int windowSize = 48;
-
-        // TODO importante error grit
-
-        //       double[] frontsCannyArrayDir  = targetTileHysteresisDirection.getSamplesDouble();
-        //       double[] frontsCannyArrayMag  = targetTileHysteresisGradient.getSamplesDouble();
-
-
-        int targetWidth = targetRectangle.width;
-        int targetHeight = targetRectangle.height;
-
-        double[] nonMaxSuppressionArray = new double[targetWidth * targetHeight];
-        double[] frontsCannyArrayDir = new double[targetWidth * targetHeight];
-        double[] frontsCannyArrayMag = new double[targetWidth * targetHeight];
-
-        extractSubArray(sourceWidth, sourceHeight, targetWidth, 0, edgeLinkedGradientData, frontsCannyArrayMag);
-        extractSubArray(sourceWidth, sourceHeight, targetWidth, 1, edgeLinkedGradientData, frontsCannyArrayDir);
-        extractSubArray(sourceWidth, sourceHeight, targetWidth, 0, nonMaxSuppressedGradientData, nonMaxSuppressionArray);
-
-        double[] frontsSumCayulaArray = new double[targetWidth * targetHeight];
-        double[] frontsCayulaArray = new double[targetWidth * targetHeight];
-
-        Arrays.fill(frontsSumCayulaArray, 0);
-
-        for (int wi = 16; wi < 60; wi += 8) {
-            /* SIED OPerator */
-            double[] frontsData = new double[sourceWidth * sourceHeight];
-
-            if (SIED_ALGORITHM.equals(algorithm)) {
-                Arrays.fill(frontsCayulaArray, 0);
-                SplitWindow splitWindow = new SplitWindow();
-                splitWindow.compute(histogramSourceData,
-                        sourceWidth,
-                        sourceHeight,
-                        targetWidth,
-                        flagArray,
-                        wi,
-                        frontsData,
-                        frontsCayulaArray /*,
-                        targetTileFronts*/);
-            }
-            // double[] frontsCayulaArray = targetTileFronts.getSamplesDouble();
-            // todo  old from 1 and new from 0
-            for (int j = 1; j < targetHeight; j++) {
-                for (int i = 1; i < targetWidth; i++) {
-                    int k = (j) * (targetWidth) + (i);
-                    frontsSumCayulaArray[k] = frontsSumCayulaArray[k] + frontsCayulaArray[k];
-                    if (frontsSumCayulaArray[k] > 1) frontsSumCayulaArray[k] = 1;
-                }
-            }
-        }
-
-        ProjectionCayulasCanny projectionCayulasCanny = new ProjectionCayulasCanny();
-        double[][] generalGradientArray = projectionCayulasCanny.compute(targetRectangle,
-                flagTile,
-                frontsCannyArrayMag,
-                frontsCannyArrayDir,
-                frontsSumCayulaArray,
-                nonMaxSuppressionArray,
-                targetTileGradientMagnitude,
-                targetTileGradientDirection);
-
-        /*FrontsOperator.makeFilledBand(generalGradientArray, targetRectangle.width, targetRectangle.height,
-     targetTileFinalFrontsMag, targetTileFinalFrontsDir, FrontsOperator.minKernelRadius); */
-
-        // Endpoints
-        EndPointsFound endFrontPointsFound = new EndPointsFound();
-        double[] endFrontPointsFoundData = endFrontPointsFound.compute(generalGradientArray,
-                targetWidth,
-                targetHeight);
-
-        // todo testband
-        // makeFilledBand(endFrontPointsFoundData, targetWidth, targetHeight, testTile, FrontsOperator.minKernelRadius);
-
-        ShortFrontSuppression shortFrontSuppression = new ShortFrontSuppression();
-        shortFrontSuppression.compute(endFrontPointsFoundData,
-                generalGradientArray,
-                targetRectangle);
-
-        SandbankRidgeOp.makeFilledBand(generalGradientArray, targetRectangle.width, targetRectangle.height,
-                targetTileFinalSandBanksMag, targetTileFinalSandBanksDir, SandbankRidgeOp.minKernelRadius);
-
-        CreateFrontID createFrontIDArray = new CreateFrontID();
-        int[] frontIDArray = createFrontIDArray.compute(generalGradientArray, targetRectangle);
-        SandbankRidgeOp.makeFilledBand(frontIDArray, targetRectangle.width, targetRectangle.height,
-                targetTileSandBanksID, SandbankRidgeOp.minKernelRadius);
-
-        double[] frontsArrayMag = targetTileGradientMagnitude.getSamplesDouble();
-        double[] frontsArrayDir = targetTileGradientDirection.getSamplesDouble();
-        int[] finalFlagArray = flagTile.getSamplesInt();
-
-        CreateFrontBelt createFrontBeltArray = new CreateFrontBelt();
-        double[][] frontBeltArray = createFrontBeltArray.compute(frontsArrayMag, frontsArrayDir, generalGradientArray, frontIDArray, targetRectangle);
-        SandbankRidgeOp.makeFilledBand(frontBeltArray, targetRectangle.width, targetRectangle.height,
-                targetTileSandBanksBeltMag, targetTileSandBanksBeltDir, SandbankRidgeOp.minKernelRadius);
-
-        // Number of e.g. FrontBelt data
-        totalFrontBeltPixelNumber = 0;
-        maxFrontBeltMagnitude = 0.;
-        thresholdFrontBeltPixelNumber = 0;
-        computeValuesCount(targetRectangle.width, targetRectangle.height, 0, frontBeltArray);
-
-        CreateFrontBeltID createFrontBeltIDArray = new CreateFrontBeltID();
-        int[] frontBeltIDArray = createFrontBeltIDArray.compute(frontBeltArray, frontIDArray, targetRectangle);
-        SandbankRidgeOp.makeFilledBand(frontBeltIDArray, targetRectangle.width, targetRectangle.height,
-                targetTileSandBanksBeltID, SandbankRidgeOp.minKernelRadius);
-
-
-
-
-        /*
-        PlayFronts playFronts = new PlayFronts();
-        playFronts.compute(generalGradientArray,
-                frontIDArray,
-                frontBeltArray,
-                frontBeltIDArray,
-                finalFlagArray,
-                targetRectangle);
-        */
-
+        /* LineDetector */
+       LineDetector linedetector = new LineDetector();
+       int[] linesSourceData = linedetector.detectLines(ridgeDetectorSourceData, gradientSourceData,
+               sourceHeight,
+               sourceWidth,
+               targetTileSandBanksBelt,
+               targetTileSandBanksBeltMag,
+               targetTileSandBanksBeltDir);
     }
-
-    // todo sourceHeight - FrontsOperator.maxKernelRadius - 1 to sourceHeight - FrontsOperator.maxKernelRadius
 
 
     private Product createTargetProduct() {
@@ -577,26 +347,6 @@ public class SandbankRidgeOp extends Operator {
             }
         }
         return counter;
-    }
-
-    void computeValuesCount(int countWidth,
-                            int countHeight,
-                            int index,
-                            double[][] countData) {
-        for (int j = minKernelRadius; j < countHeight - minKernelRadius; j++) {
-            for (int i = minKernelRadius; i < countWidth - minKernelRadius; i++) {
-                int k = j * (countWidth) + i;
-                if (!Double.isNaN(countData[index][k])) {
-                    totalFrontBeltPixelNumber++;
-                    if (countData[index][k] > acceptableFrontBeltPixel) {
-                        thresholdFrontBeltPixelNumber++;
-                    }
-                    if (countData[index][k] > maxFrontBeltMagnitude) {
-                        maxFrontBeltMagnitude = countData[index][k];
-                    }
-                }
-            }
-        }
     }
 
     static void makeFilledBand(double[] inputData,
