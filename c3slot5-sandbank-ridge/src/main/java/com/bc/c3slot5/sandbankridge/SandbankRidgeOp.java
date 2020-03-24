@@ -273,9 +273,16 @@ public class SandbankRidgeOp extends Operator {
                 weightingFactor);
 
 
+        Filter filter = new LaplaceFilter();
+        filter.compute(ridgeDetectorSourceData,
+                sourceWidth,
+                sourceHeight,
+                flagArray,
+                laplaceFilterKernelRadius);
+
         /* LineDetector */
-       LineDetector linedetector = new LineDetector();
-       int[] linesSourceData = linedetector.detectLines(ridgeDetectorSourceData, gradientSourceData,
+        LineDetector linedetector = new LineDetector();
+        int[] linesSourceData = linedetector.detectLines(ridgeDetectorSourceData, gradientSourceData,
                sourceHeight,
                sourceWidth,
                targetTileSandBanksBelt,
