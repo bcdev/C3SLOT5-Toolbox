@@ -39,7 +39,7 @@ public class LineDetector {
      * @return An array with lines
      */
 
-    public int[] detectLines(double[] sourceArray,
+    public int[][] detectLines(double[] sourceArray,
                              double[][] gradientSourceData,
                              int sourceHeight,
                              int sourceWidth,
@@ -52,11 +52,19 @@ public class LineDetector {
         double[] preparedData = new double[sourceArray.length];
         System.arraycopy(sourceArray, 0, preparedData, 0, sourceArray.length);
 
-        int[] linesData = new int[sourceArray.length];
+        int[][] linesData = new int[2][sourceArray.length];
         double[][] gradientLinesData= new double[2][sourceArray.length];
         int[] countsData = new int[sourceArray.length];
-        Arrays.fill(linesData, 0);
         Arrays.fill(countsData, 0);
+
+
+        for (int j = 0; j < sourceHeight - 1; j++) {
+            for (int i = 0; i < sourceWidth - 1; i++) {
+                linesData[0][(j) * (sourceWidth) + (i)] = 0;
+                linesData[1][(j) * (sourceWidth) + (i)] = 0;
+                preparedData[(j) * (sourceWidth) + (i)]= Math.pow(preparedData[(j) * (sourceWidth) + (i)], 0.25);
+            }
+        }
 
         int oldI;
         int oldJ;
@@ -92,26 +100,26 @@ public class LineDetector {
                 }
             }
         }
-        SandbankRidgeOp.makeFilledBand(countsData, sourceWidth, sourceHeight,
-                targetTileSandBanksBelt, SandbankRidgeOp.maxKernelRadius);
 
         for (int j = 1; j < sourceHeight - 1; j++) {
             for (int i = 1; i < sourceWidth - 1; i++) {
 
                 gradientLinesData[0][j * (sourceWidth) + i] = 0.0;
                 gradientLinesData[1][j * (sourceWidth) + i] = 0.0;
+                linesData[1][(j) * (sourceWidth) + (i)] = countsData[(j) * (sourceWidth) + (i)];
                 if (countsData[(j) * (sourceWidth) + (i)] > SandbankRidgeOp.thresholdRidgeDetection) {
-                    linesData[(j) * (sourceWidth) + (i)] = 1;
+                    linesData[0][(j) * (sourceWidth) + (i)] = 1;
                     gradientLinesData[0][j * (sourceWidth) + i] = gradientSourceData[0][j * (sourceWidth) + i];
                     gradientLinesData[1][j * (sourceWidth) + i] = gradientSourceData[1][j * (sourceWidth) + i];
                 }
             }
         }
 
-//        SandbankRidgeOp.makeFilledBand(linesData, sourceWidth, sourceHeight,
-//                targetTileSandBanksBelt, SandbankRidgeOp.maxKernelRadius);
         SandbankRidgeOp.makeFilledBand(gradientLinesData, sourceWidth, sourceHeight,
                 targetTileSandBanksBeltMag, targetTileSandBanksBeltDir, SandbankRidgeOp.maxKernelRadius);
+
+        SandbankRidgeOp.makeFilledBand(countsData, sourceWidth, sourceHeight,
+                targetTileSandBanksBelt, SandbankRidgeOp.maxKernelRadius);
 
         return linesData;
     }
