@@ -144,17 +144,18 @@ public class SandbankRidgeOp extends Operator {
     static final int gaussFilterKernelRadius = 2;
     static final int laplaceFilterKernelRadius = 2;
     static final int convolutionFilterKernelRadius = 1;
-    static final int maxKernelRadius = 30; //30;
+    static final int nonMaxSuppressionKernelRadius = 1;
+    static final double nonMaxSuppressionThresholdHessian = 1.0;
+    static final int maxKernelRadius = 0; //30;
     static final int minKernelRadius = 0;
 
     private double maxFrontBeltMagnitude = 0.;
     private double acceptableFrontBeltPixel = 0.025;
     static double thresholdRidgeDetection = 6.0;
     static int thresholdRidgeDetectionMax = 6;
-    static int thresholdRidgeDetectionMin = 2;
-    static double thresholdRidgeDetectionHessian = 3.0;
-    static double thresholdRidgeDetectionHessianMax = 3.0;
-    static double thresholdRidgeDetectionHessianMin = 1.0;
+    static int thresholdRidgeDetectionMin = 4;
+    static double thresholdRidgeDetectionHessian = 0.8;
+
 
 
 
@@ -343,7 +344,7 @@ public class SandbankRidgeOp extends Operator {
 
         /* LineDetector */
         LineDetectorHessian lineDetectorHessian = new LineDetectorHessian();
-        double[] linesSourceDataHessian = lineDetectorHessian.detectLines(ridgeDetectorSourceDataHessian,
+        double[][] linesSourceDataHessian = lineDetectorHessian.detectLines(ridgeDetectorSourceDataHessian,
                 flagArray,
                 sourceHeight,
                 sourceWidth,

@@ -39,7 +39,7 @@ public class LineDetectorHessian {
      * @return An array with lines
      */
 
-    public double[] detectLines(double[] sourceArray,
+    public double[][] detectLines(double[] sourceArray,
                                 int[] flagArray,
                                 int sourceHeight,
                                 int sourceWidth,
@@ -89,10 +89,18 @@ public class LineDetectorHessian {
             }
         }
 
-        SandbankRidgeOp.makeFilledBand(majorEigenValueHessian, sourceWidth, sourceHeight,
-                targetTileSandBanksBeltHessian, SandbankRidgeOp.maxKernelRadius);
+        // standard thinning method according to Canny - disadvantage: lags
+        NonMaximumSuppressionHessian majorEigenValueHessianNonMax = new NonMaximumSuppressionHessian();
+        double[][] majorEigenValueHessianData = majorEigenValueHessianNonMax.nonMaxSuppressionOfSourceBand(
+                majorEigenValueHessian,
+                sourceWidth,
+                sourceHeight);
 
-        return majorEigenValueHessian;
+
+        SandbankRidgeOp.makeFilledBand(majorEigenValueHessianData, sourceWidth, sourceHeight,
+                targetTileSandBanksBeltHessian, 1,SandbankRidgeOp.maxKernelRadius);
+
+        return majorEigenValueHessianData;
     }
 
 
