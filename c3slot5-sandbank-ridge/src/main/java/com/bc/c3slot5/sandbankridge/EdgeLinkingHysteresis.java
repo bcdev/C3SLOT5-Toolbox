@@ -1,16 +1,22 @@
 package com.bc.c3slot5.sandbankridge;
 
+import org.esa.snap.core.gpf.Tile;
+
 import java.util.Arrays;
 
 public class EdgeLinkingHysteresis {
 
     public int[] edgeLinkingOfSourceBand(
             int[][] sourceData,
+            double[][] gradientSourceData,
             int sourceWidth,
-            int sourceHeight) {
+            int sourceHeight,
+            Tile targetTileSandBanksBeltMag,
+            Tile targetTileSandBanksBeltDir) {
 
 
         int[][] preparedData = new int[2][sourceWidth * sourceHeight];
+        double[][] gradientLinesData = new double[2][sourceWidth * sourceHeight];
 
         for (int j = 0; j < sourceHeight; j++) {
             for (int i = 0; i < sourceWidth; i++) {
@@ -32,6 +38,21 @@ public class EdgeLinkingHysteresis {
                 }
             }
         }
+
+        for (int j = 1; j < sourceHeight; j++) {
+            for (int i = 1; i < sourceWidth; i++) {
+                gradientLinesData[0][j * (sourceWidth) + i] = 0.0;
+                gradientLinesData[1][j * (sourceWidth) + i] = 0.0;
+                if (edgeLinkedData[(j) * (sourceWidth) + (i)] == 1) {
+                    gradientLinesData[0][j * (sourceWidth) + i] = gradientSourceData[0][j * (sourceWidth) + i];
+                    gradientLinesData[1][j * (sourceWidth) + i] = gradientSourceData[1][j * (sourceWidth) + i];
+                }
+            }
+        }
+
+        SandbankRidgeOp.makeFilledBand(gradientLinesData, sourceWidth, sourceHeight,
+                targetTileSandBanksBeltMag, targetTileSandBanksBeltDir, SandbankRidgeOp.maxKernelRadius);
+
 
         return edgeLinkedData;
     }

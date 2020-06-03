@@ -66,6 +66,7 @@ public class LineDetectorHessian {
         double[] majorEigenValueHessian = new double[sourceLength];
         Arrays.fill(majorEigenValueHessian,Double.NaN);
 
+
         for (int y = 0; y < sourceHeight; y++) {
             for (int x = 0; x < sourceWidth; x++) {
                 hxData[y * (sourceWidth) + x] = xData[x][y];
@@ -82,14 +83,14 @@ public class LineDetectorHessian {
             for (int x = 0; x < sourceWidth; x++) {
                 valueIntermediate = (Math.pow(xxData[x][y], 2) + 4. * Math.pow(xyData[x][y], 2) -
                                 2 * xxData[x][y] * yyData[x][y] + Math.pow(yyData[x][y], 2));
-                if (valueIntermediate>=0) {
+                if (valueIntermediate>=0 ) {
                     majorEigenValueHessian[y * (sourceWidth) + x] =
                             0.5 * (xxData[x][y] + yyData[x][y] + Math.sqrt(valueIntermediate));
                 }
             }
         }
 
-        // standard thinning method according to Canny - disadvantage: lags
+//        // standard thinning method according to Canny - disadvantage: lags
         NonMaximumSuppressionHessian majorEigenValueHessianNonMax = new NonMaximumSuppressionHessian();
         double[][] majorEigenValueHessianData = majorEigenValueHessianNonMax.nonMaxSuppressionOfSourceBand(
                 majorEigenValueHessian,
@@ -100,7 +101,12 @@ public class LineDetectorHessian {
         SandbankRidgeOp.makeFilledBand(majorEigenValueHessianData, sourceWidth, sourceHeight,
                 targetTileSandBanksBeltHessian, 1,SandbankRidgeOp.maxKernelRadius);
 
+//        SandbankRidgeOp.makeFilledBand(majorEigenValueHessian, sourceWidth, sourceHeight,
+//                targetTileSandBanksBeltHessian,SandbankRidgeOp.maxKernelRadius);
+
+
         return majorEigenValueHessianData;
+
     }
 
 

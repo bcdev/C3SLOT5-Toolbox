@@ -2,6 +2,8 @@ package com.bc.c3slot5.sandbankridge;
 
 import org.esa.snap.core.gpf.Tile;
 
+import java.util.Arrays;
+
 
 public class GradientOperator {
 
@@ -30,6 +32,9 @@ public class GradientOperator {
 
         double[] gradientMagnitudeArray = new double[sourceLength];
         double[] gradientDirectionArray = new double[sourceLength];
+        Arrays.fill(gradientMagnitudeArray, Double.NaN);
+        Arrays.fill(gradientDirectionArray, Double.NaN);
+
         double convertToDegree;
          
         for (int y = 0; y < sourceHeight; y++) {

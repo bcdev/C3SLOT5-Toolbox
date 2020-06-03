@@ -31,7 +31,7 @@ import java.util.Arrays;
  */
 public class LineDetector {
 
-    static final int RED_DUCK = 255;
+    static final int RED_DUCK = -255;
 
     /**
      * Detect lines.
@@ -40,29 +40,27 @@ public class LineDetector {
      */
 
     public int[][] detectLines(double[] sourceArray,
-                             double[][] gradientSourceData,
-                             int sourceHeight,
-                             int sourceWidth,
-                             Tile targetTileSandBanksBelt,
-                             Tile targetTileSandBanksBeltMag,
-                             Tile targetTileSandBanksBeltDir) {
+                               int sourceHeight,
+                               int sourceWidth,
+                               Tile targetTileSandBanksBelt) {
 
         int sourceLength = sourceWidth * sourceHeight;
 
-        double[] preparedData = new double[sourceArray.length];
-        System.arraycopy(sourceArray, 0, preparedData, 0, sourceArray.length);
+        double[] preparedData = new double[sourceLength];
+        System.arraycopy(sourceArray, 0, preparedData, 0, sourceLength);
 
-        int[][] linesData = new int[2][sourceArray.length];
-        double[][] gradientLinesData= new double[2][sourceArray.length];
-        int[] countsData = new int[sourceArray.length];
+        int[][] linesData = new int[2][sourceLength];
+        int[] countsData = new int[sourceLength];
         Arrays.fill(countsData, 0);
+        int[] countsDataNonMax = new int[sourceLength];
+        Arrays.fill(countsDataNonMax, 0);
 
 
         for (int j = 0; j < sourceHeight - 1; j++) {
             for (int i = 0; i < sourceWidth - 1; i++) {
                 linesData[0][(j) * (sourceWidth) + (i)] = 0;
                 linesData[1][(j) * (sourceWidth) + (i)] = 0;
-                preparedData[(j) * (sourceWidth) + (i)]= Math.pow(preparedData[(j) * (sourceWidth) + (i)], 0.25);
+                //preparedData[(j) * (sourceWidth) + (i)]= Math.pow(preparedData[(j) * (sourceWidth) + (i)], 0.25);
             }
         }
 
@@ -85,38 +83,34 @@ public class LineDetector {
 //                System.out.printf("!!!!!!!!!!!!!!!LineDetector   \n");
 //                System.out.printf("!!!!!!!!!!!!!!!!!  eins entdeckt:  %d  %d  %d  %d \n", i, newI, j, newJ);
 
-                for (int k = 0; k < Math.max(sourceHeight,sourceWidth) - 2; k++) {
-                    if (preparedData[(newJ) * (sourceWidth) + (newI)] > preparedData[(oldJ) * (sourceWidth) + (oldI)]) {
-                        countsData[(newJ) * (sourceWidth) + (newI)] = countsData[(newJ) * (sourceWidth) + (newI)] + 1;
-                        valuesXrun = identifyRidges(sourceHeight, sourceWidth, preparedData, newJ, newI);
-                        oldI = newI;
-                        oldJ = newJ;
-                        newI = valuesXrun[0];
-                        newJ = valuesXrun[1];
-
+                for (int k = 0; k < Math.max(sourceHeight, sourceWidth) - 2; k++) {
+                    if (newJ == oldJ && newI == oldI ) {
+                        countsData[(oldJ) * (sourceWidth) + (oldI)] = countsData[(oldJ) * (sourceWidth) + (oldI)] + 1;
                     } else {
-                        break;
+                        if ( newJ!= RED_DUCK && newI!= RED_DUCK && newJ != oldJ && newI != oldI && preparedData[(newJ) * (sourceWidth) + (newI)] > preparedData[(oldJ) * (sourceWidth) + (oldI)]) {
+                            countsData[(newJ) * (sourceWidth) + (newI)] = countsData[(newJ) * (sourceWidth) + (newI)] + 1;
+                            valuesXrun = identifyRidges(sourceHeight, sourceWidth, preparedData, newJ, newI);
+                            oldI = newI;
+                            oldJ = newJ;
+                            newI = valuesXrun[0];
+                            newJ = valuesXrun[1];
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
         }
 
+
         for (int j = 1; j < sourceHeight - 1; j++) {
             for (int i = 1; i < sourceWidth - 1; i++) {
-
-                gradientLinesData[0][j * (sourceWidth) + i] = 0.0;
-                gradientLinesData[1][j * (sourceWidth) + i] = 0.0;
                 linesData[1][(j) * (sourceWidth) + (i)] = countsData[(j) * (sourceWidth) + (i)];
                 if (countsData[(j) * (sourceWidth) + (i)] > SandbankRidgeOp.thresholdRidgeDetection) {
                     linesData[0][(j) * (sourceWidth) + (i)] = 1;
-                    gradientLinesData[0][j * (sourceWidth) + i] = gradientSourceData[0][j * (sourceWidth) + i];
-                    gradientLinesData[1][j * (sourceWidth) + i] = gradientSourceData[1][j * (sourceWidth) + i];
                 }
             }
         }
-
-        SandbankRidgeOp.makeFilledBand(gradientLinesData, sourceWidth, sourceHeight,
-                targetTileSandBanksBeltMag, targetTileSandBanksBeltDir, SandbankRidgeOp.maxKernelRadius);
 
         SandbankRidgeOp.makeFilledBand(countsData, sourceWidth, sourceHeight,
                 targetTileSandBanksBelt, SandbankRidgeOp.maxKernelRadius);
@@ -134,7 +128,7 @@ public class LineDetector {
                 int kk = j + jj;
                 int pp = i + ii;
                 if (kk >= 0 && kk < sourceHeight - 1 && pp >= 0 && pp < sourceWidth) {
-                    if ((preparedData[(kk) * (sourceWidth) + (pp)]- preparedData[(j) * (sourceWidth) + (i)]) > maxValue) {
+                    if ((preparedData[(kk) * (sourceWidth) + (pp)] - preparedData[(j) * (sourceWidth) + (i)]) > maxValue) {
                         maxValue = preparedData[(kk) * (sourceWidth) + (pp)];
                         newI = pp;
                         newJ = kk;
@@ -142,9 +136,13 @@ public class LineDetector {
                 }
             }
         }
-        values[0] = newI;
-        values[1] = newJ;
-
+        if (maxValue > 0. || maxValue < 0.) {
+            values[0] = newI;
+            values[1] = newJ;
+        } else {
+            values[0] = RED_DUCK;
+            values[1] = RED_DUCK;
+        }
         return values;
     }
 }

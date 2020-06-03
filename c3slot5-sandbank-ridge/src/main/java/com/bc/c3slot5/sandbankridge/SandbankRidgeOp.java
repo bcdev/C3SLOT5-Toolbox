@@ -50,32 +50,6 @@ public class SandbankRidgeOp extends Operator {
     private String flagBandName;
 
 
-    //Detect lines parameters
-
-//     @param sigma
-//     //            A value which depends on the line width: sigma greater or equal to
-//    //            width/(2*sqrt(3))
-//     @param upperThresh
-//     //           Upper hysteresis thresholds used in the linking algorithm (Depends
-//     //            on the maximum contour brightness (greyvalue))
-//     @param lowerThresh
-//    //            Lower hysteresis thresholds used in the linking algorithm (Depends
-//    //            on the minimum contour brightness (greyvalue)).
-//     @param minLength
-//     //           the min length
-//     @param maxLength
-//     //            the max length
-//     @param isDarkLine
-//     //            True if the line darker than the background
-//     @param doCorrectPosition
-//     //            Determines whether the line width and position correction should
-//     //            be applied
-//     @param doEstimateWidth
-//     //           Determines whether the line width should be extracted
-//     @param doExtendLine
-//    //            Extends the detect lines to find more junction points
-
-
 
 
     @TargetProduct
@@ -247,11 +221,6 @@ public class SandbankRidgeOp extends Operator {
         makeFilledBand(flagArray, sourceWidth, sourceHeight, targetTileBandFlag, SandbankRidgeOp.maxKernelRadius);
         // copy source data for histogram method
 
-        double[] ridgeDetectorSourceData = new double[sourceArray.length];
-        System.arraycopy(sourceArray, 0, ridgeDetectorSourceData, 0, sourceArray.length);
-
-        double[] ridgeDetectorSourceDataHessian = new double[sourceArray.length];
-        System.arraycopy(sourceArray, 0, ridgeDetectorSourceDataHessian, 0, sourceArray.length);
 
 
         /**************************************************************************/
@@ -306,41 +275,53 @@ public class SandbankRidgeOp extends Operator {
         /************************** Ridge Method 1  *****************************/
         /**************************************************************************/
 
-//        Filter filter = new ContextualMedianFilter();
-//        filter.compute(ridgeDetectorSourceData,
-//                sourceWidth,
-//                sourceHeight,
-//                flagArray,
-//                conMedianFilterKernelRadius);
+        double[] ridgeDetectorSourceData = new double[sourceArray.length];
+        System.arraycopy(sourceArray, 0, ridgeDetectorSourceData, 0, sourceArray.length);
+
+        double[] ridgeDetectorSourceDataHessian = new double[sourceArray.length];
+        for (int k = 0; k < sourceArray.length; k++) {
+            ridgeDetectorSourceDataHessian[k] = sourceArray[k]* -1.0;
+        }
+        //System.arraycopy(sourceArray, 0, ridgeDetectorSourceDataHessian, 0, sourceArray.length);
+
+
+
+        Filter filter = new ContextualMedianFilter();
+        filter.compute(ridgeDetectorSourceData,
+                sourceWidth,
+                sourceHeight,
+                flagArray,
+                conMedianFilterKernelRadius);
 
         /* LineDetector */
         LineDetector lineDetector = new LineDetector();
-        int[][] linesSourceData = lineDetector.detectLines(ridgeDetectorSourceData, gradientSourceData,
+        int[][] linesSourceData = lineDetector.detectLines(ridgeDetectorSourceData,
                sourceHeight,
                sourceWidth,
-               targetTileSandBanksBelt,
-               targetTileSandBanksBeltMag,
-               targetTileSandBanksBeltDir);
+               targetTileSandBanksBelt);
 
         EdgeLinkingHysteresis edgeLinkingOfSourceBand = new EdgeLinkingHysteresis();
         int[] edgeLinkedData = edgeLinkingOfSourceBand.edgeLinkingOfSourceBand(
                 linesSourceData,
+                gradientSourceData,
                 sourceWidth,
-                sourceHeight);
+                sourceHeight,
+                targetTileSandBanksBeltMag,
+                targetTileSandBanksBeltDir);
 
         makeFilledBand(edgeLinkedData, sourceWidth, sourceHeight, targetTileSandBanksBeltLinked, maxKernelRadius);
 
 
         /**************************************************************************/
-        /************************** Ridge Method 1  *****************************/
+        /************************** Ridge Method 2  *****************************/
         /**************************************************************************/
 
-//        Filter filter = new ContextualMedianFilter();
-//        filter.compute(ridgeDetectorSourceData,
-//                sourceWidth,
-//                sourceHeight,
-//                flagArray,
-//                conMedianFilterKernelRadius);
+        Filter filterHessian = new GaussFilter();
+        filterHessian.compute(ridgeDetectorSourceDataHessian,
+                sourceWidth,
+                sourceHeight,
+                flagArray,
+                gaussFilterKernelRadius);
 
         /* LineDetector */
         LineDetectorHessian lineDetectorHessian = new LineDetectorHessian();
@@ -361,7 +342,7 @@ public class SandbankRidgeOp extends Operator {
                 targetTileSandBanksBeltMagHessian,
                 targetTileSandBanksBeltDirHessian);
 
-        makeFilledBand(edgeLinkedDataHessian, sourceWidth, sourceHeight, targetTileSandBanksBeltLinked, maxKernelRadius);
+        makeFilledBand(edgeLinkedDataHessian, sourceWidth, sourceHeight, targetTileSandBanksBeltLinkedHessian, maxKernelRadius);
 
     }
 
