@@ -50,6 +50,16 @@ public class SandbankRidgeOp extends Operator {
     private String flagBandName;
 
 
+    @Parameter(defaultValue = "1.0",
+            label = " Ridge Magnitude Threshold - Hessian approach",
+            description = " Ridge Magnitude Threshold - Hessian approach ")
+    static double nonMaxSuppressionThresholdHessian;
+
+    @Parameter(defaultValue = "6",
+            label = " Ridge Magnitude Threshold - Steepness approach ",
+            description = "  Ridge Magnitude Threshold - Steepness approach ")
+    static int thresholdRidgeDetection;
+
 
 
     @TargetProduct
@@ -119,16 +129,13 @@ public class SandbankRidgeOp extends Operator {
     static final int laplaceFilterKernelRadius = 2;
     static final int convolutionFilterKernelRadius = 1;
     static final int nonMaxSuppressionKernelRadius = 1;
-    static final double nonMaxSuppressionThresholdHessian = 1.0;
     static final int maxKernelRadius = 0; //30;
     static final int minKernelRadius = 0;
 
     private double maxFrontBeltMagnitude = 0.;
     private double acceptableFrontBeltPixel = 0.025;
-    static double thresholdRidgeDetection = 6.0;
-    static int thresholdRidgeDetectionMax = 6;
-    static int thresholdRidgeDetectionMin = 4;
-    static double thresholdRidgeDetectionHessian = 0.8;
+    static int thresholdRidgeDetectionMax = thresholdRidgeDetection;
+    static int thresholdRidgeDetectionMin = thresholdRidgeDetection - (int)Math.floor(0.3* thresholdRidgeDetection);
 
 
 
