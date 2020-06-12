@@ -43,6 +43,7 @@ public class LineDetectorHessian {
                                 int[] flagArray,
                                 int sourceHeight,
                                 int sourceWidth,
+                                double nonMaxSuppressionThresholdHessian,
                                 double kernelEdgeValue,
                                 double kernelCentreValue,
                                 Tile targetTileSandBanksBeltHessian) {
@@ -95,7 +96,8 @@ public class LineDetectorHessian {
         double[][] majorEigenValueHessianData = majorEigenValueHessianNonMax.nonMaxSuppressionOfSourceBand(
                 majorEigenValueHessian,
                 sourceWidth,
-                sourceHeight);
+                sourceHeight,
+                nonMaxSuppressionThresholdHessian);
 
 
         SandbankRidgeOp.makeFilledBand(majorEigenValueHessianData, sourceWidth, sourceHeight,

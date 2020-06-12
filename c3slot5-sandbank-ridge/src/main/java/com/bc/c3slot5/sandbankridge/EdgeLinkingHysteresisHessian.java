@@ -110,7 +110,7 @@ public class EdgeLinkingHysteresisHessian {
 
             if (!(checkThreeValidA || checkThreeValidB || checkThreeValidC || checkThreeValidD)) {
                 if (edgeLinkedData[(j_height) * (sourceWidth) + (i_width)] == 0) {
-                    System.out.printf("linking diagonal_1: heightValue %d , widthValue %d) \n", j_height, i_width);
+                    //System.out.printf("linking diagonal_1: heightValue %d , widthValue %d) \n", j_height, i_width);
 
                     heightValueOne = j_height - 1;
                     widthValueOne = i_width - 1;

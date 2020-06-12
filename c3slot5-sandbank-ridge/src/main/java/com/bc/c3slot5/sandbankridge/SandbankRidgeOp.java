@@ -53,12 +53,12 @@ public class SandbankRidgeOp extends Operator {
     @Parameter(defaultValue = "1.0",
             label = " Ridge Magnitude Threshold - Hessian approach",
             description = " Ridge Magnitude Threshold - Hessian approach ")
-    static double nonMaxSuppressionThresholdHessian;
+    private double nonMaxSuppressionThresholdHessian;
 
     @Parameter(defaultValue = "6",
             label = " Ridge Magnitude Threshold - Steepness approach ",
             description = "  Ridge Magnitude Threshold - Steepness approach ")
-    static int thresholdRidgeDetection;
+    private int thresholdRidgeDetection;
 
 
 
@@ -134,8 +134,9 @@ public class SandbankRidgeOp extends Operator {
 
     private double maxFrontBeltMagnitude = 0.;
     private double acceptableFrontBeltPixel = 0.025;
-    static int thresholdRidgeDetectionMax = thresholdRidgeDetection;
-    static int thresholdRidgeDetectionMin = thresholdRidgeDetection - (int)Math.floor(0.3* thresholdRidgeDetection);
+
+    private int thresholdRidgeDetectionMax;
+    private int thresholdRidgeDetectionMin;
 
 
 
@@ -211,6 +212,10 @@ public class SandbankRidgeOp extends Operator {
         int sourceWidth = sourceRectangle.width;
         int sourceHeight = sourceRectangle.height;
         int sourceLength = sourceRectangle.width * sourceRectangle.height;
+
+        thresholdRidgeDetectionMax = thresholdRidgeDetection;
+        thresholdRidgeDetectionMin = thresholdRidgeDetection - (int) Math.floor(0.3 * thresholdRidgeDetection);
+
 
         final double[] sourceArray = sourceTile.getSamplesDouble();
         final int[] flagArray = flagTile.getSamplesInt();
@@ -300,11 +305,16 @@ public class SandbankRidgeOp extends Operator {
                 flagArray,
                 conMedianFilterKernelRadius);
 
-        /* LineDetector */
+//        System.out.printf("threshold %f threshold %d threshold %d threshold %d) \n",
+//                 nonMaxSuppressionThresholdHessian, thresholdRidgeDetection,
+//                thresholdRidgeDetectionMax,  thresholdRidgeDetectionMin);
+
+        /* LineDetector - linesData[1][..] = countsData; linesData[0][..] = 0 or 1*/
         LineDetector lineDetector = new LineDetector();
         int[][] linesSourceData = lineDetector.detectLines(ridgeDetectorSourceData,
                sourceHeight,
                sourceWidth,
+               thresholdRidgeDetection,
                targetTileSandBanksBelt);
 
         EdgeLinkingHysteresis edgeLinkingOfSourceBand = new EdgeLinkingHysteresis();
@@ -313,6 +323,9 @@ public class SandbankRidgeOp extends Operator {
                 gradientSourceData,
                 sourceWidth,
                 sourceHeight,
+                thresholdRidgeDetection,
+                thresholdRidgeDetectionMax,
+                thresholdRidgeDetectionMin,
                 targetTileSandBanksBeltMag,
                 targetTileSandBanksBeltDir);
 
@@ -336,6 +349,7 @@ public class SandbankRidgeOp extends Operator {
                 flagArray,
                 sourceHeight,
                 sourceWidth,
+                nonMaxSuppressionThresholdHessian,
                 kernelEdgeValue,
                 kernelCentreValue,
                 targetTileSandBanksBeltHessian);

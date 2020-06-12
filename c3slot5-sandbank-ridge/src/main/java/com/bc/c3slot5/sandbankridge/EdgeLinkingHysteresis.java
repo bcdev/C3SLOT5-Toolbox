@@ -1,42 +1,61 @@
 package com.bc.c3slot5.sandbankridge;
 
+import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.esa.snap.core.gpf.Tile;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 public class EdgeLinkingHysteresis {
+
+    static final int BLUE_DUCK = -255;
 
     public int[] edgeLinkingOfSourceBand(
             int[][] sourceData,
             double[][] gradientSourceData,
             int sourceWidth,
             int sourceHeight,
+            int thresholdRidgeDetection,
+            int thresholdRidgeDetectionMax,
+            int thresholdRidgeDetectionMin,
             Tile targetTileSandBanksBeltMag,
             Tile targetTileSandBanksBeltDir) {
 
 
-        int[][] preparedData = new int[2][sourceWidth * sourceHeight];
+//        System.out.printf("threshold %d threshold %d threshold %d) \n",
+//                thresholdRidgeDetection, thresholdRidgeDetectionMax,  thresholdRidgeDetectionMin);
+
+
         double[][] gradientLinesData = new double[2][sourceWidth * sourceHeight];
-
-        for (int j = 0; j < sourceHeight; j++) {
-            for (int i = 0; i < sourceWidth; i++) {
-                preparedData[0][j * (sourceWidth) + i] = sourceData[0][j * (sourceWidth) + i];
-                preparedData[1][j * (sourceWidth) + i] = sourceData[1][j * (sourceWidth) + i];
-            }
-        }
-
         int[] edgeLinkedData = new int[sourceWidth * sourceHeight];
         Arrays.fill(edgeLinkedData, 0);
-        int centralValue = 0;
-
-        for (int j = 1; j < sourceHeight; j++) {
-            for (int i = 1; i < sourceWidth; i++) {
-                if (sourceData[1][j * (sourceWidth) + i] >= SandbankRidgeOp.thresholdRidgeDetectionMax) {
+        int[] edgeLinkedOriginalData = new int[sourceWidth * sourceHeight];
+        Arrays.fill(edgeLinkedOriginalData, 0);
+        int centralValue;
+        /*- sourceData[1][..] = countsData; sourceData[0][..] = 0 or 1 */
+        for (int j = 0; j < sourceHeight; j++) {
+            for (int i = 0; i < sourceWidth; i++) {
+                if (sourceData[1][j * (sourceWidth) + i] >= thresholdRidgeDetectionMax) {
                     edgeLinkedData[j * (sourceWidth) + i] = 1;
-                    centralValue = sourceData[1][j * (sourceWidth) + i];
-                    makeEdgeLinking(i, j, sourceWidth, sourceHeight, sourceData, preparedData, edgeLinkedData, centralValue);
+                    edgeLinkedOriginalData[j * (sourceWidth) + i] = 1;
                 }
             }
+        }
+        for (int iterate = 0; iterate < 3; iterate++) {
+            centralValue = BLUE_DUCK;
+            for (int j = 1; j < sourceHeight; j++) {
+                for (int i = 1; i < sourceWidth; i++) {
+                    centralValue = BLUE_DUCK;
+                    if (edgeLinkedData[j * (sourceWidth) + i] == 0 &&
+                            sourceData[1][j * (sourceWidth) + i] >= thresholdRidgeDetectionMin) {
+//                        System.out.printf("edgelinking_starts: heightValue %d , widthValue %d  count %d threshold %d) \n", j, i, sourceData[1][j * (sourceWidth) + i], thresholdRidgeDetectionMin);
+
+                        centralValue = sourceData[1][j * (sourceWidth) + i];
+                        makeEdgeLinking(i, j, sourceWidth, sourceHeight, sourceData, edgeLinkedOriginalData, edgeLinkedData, centralValue);
+                    }
+                }
+            }
+            //System.arraycopy(edgeLinkedData, 0, edgeLinkedOriginalData, 0, sourceData.length);
         }
 
         for (int j = 1; j < sourceHeight; j++) {
@@ -62,86 +81,78 @@ public class EdgeLinkingHysteresis {
                                  int sourceWidth,
                                  int sourceHeight,
                                  int[][] sourceData,
-                                 int[][] preparedData,
+                                 int[] edgeLinkedOriginalData,
                                  int[] edgeLinkedData,
                                  int centralValue) {
 
 
         if (j_height < sourceHeight - 1 && i_width < sourceWidth - 1 && j_height > 1 && i_width > 1) {
+            int arrayWidth = 3;
+            int arrayHeigth = 3;
+            int arrayLength = arrayWidth * arrayHeigth;
+            int switchValue = 0;
+            boolean linkingSwitch = false;
+            int[] heightValue = new int[arrayLength];
+            int[] widthValue = new int[arrayLength];
+            int[] edgeLinkedOriginalValue = new int[arrayLength];
+            int[] edgeLinkedValue = new int[arrayLength];
+            int[] sourceDataValue = new int[arrayLength];
 
-            //System.out.printf("Second EDGE: heightValue %d , widthValue %d) \n", j_height, i_width);
-            int heightValue;
-            int widthValue;
+            int k;
+            for (int jj = 0; jj < arrayHeigth; jj++) {
+                for (int ii = 0; ii < arrayWidth; ii++) {
+                    k = jj * 3 + ii;
+                    heightValue[k] = j_height + (jj - 1);
+                    widthValue[k] = i_width + (ii - 1);
+                    edgeLinkedOriginalValue[k] = edgeLinkedOriginalData[heightValue[k] * (sourceWidth) + widthValue[k]];
+                    edgeLinkedValue[k] = edgeLinkedData[heightValue[k] * (sourceWidth) + widthValue[k]];
+                    sourceDataValue[k] = sourceData[1][heightValue[k] * (sourceWidth) + widthValue[k]];
+                    if (edgeLinkedOriginalValue[k] == 1) {
+                        switchValue = 1;
+                    } else {
+                        if (edgeLinkedValue[k] == 1 && switchValue != 1) {
+                            switchValue = 2;
+                        }
+                    }
+                }
+            }
 
-            heightValue = j_height - 1;
-            widthValue = i_width - 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
+            if (switchValue == 1 || switchValue == 2) {
+                linkingSwitch = makeEdgeLinkingPartTwo(heightValue, widthValue, arrayWidth, arrayHeigth,
+                        sourceDataValue, edgeLinkedOriginalValue, edgeLinkedValue,
+                        edgeLinkedData, centralValue);
+            }
 
-            heightValue = j_height - 1;
-            widthValue = i_width;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height - 1;
-            widthValue = i_width + 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height;
-            widthValue = i_width - 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height;
-            widthValue = i_width + 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height + 1;
-            widthValue = i_width - 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height + 1;
-            widthValue = i_width;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-            heightValue = j_height + 1;
-            widthValue = i_width + 1;
-            makeEdgeLinkingPartTwo(heightValue, widthValue, sourceWidth, sourceHeight,
-                    sourceData, preparedData, edgeLinkedData, centralValue);
-
-
-        }
-    }
-
-    private void makeEdgeLinkingPartTwo(int heightValue, int widthValue,
-                                        int sourceWidth, int sourceHeight,
-                                        int[][] sourceData,
-                                        int[][] preparedData,
-                                        int[] edgeLinkedData,
-                                        int centralValue) {
-        int centralValueMax;
-        if (sourceData[1][(heightValue) * (sourceWidth) + (widthValue)] >= SandbankRidgeOp.thresholdRidgeDetectionMax
-                && edgeLinkedData[(heightValue) * (sourceWidth) + (widthValue)] == 0) {
-            edgeLinkedData[(heightValue) * (sourceWidth) + (widthValue)] = 1;
-            centralValueMax = Math.max(sourceData[1][(heightValue) * (sourceWidth) + (widthValue)], centralValue);
-            makeEdgeLinking(widthValue, heightValue, sourceWidth, sourceHeight, sourceData,
-                    preparedData, edgeLinkedData, centralValueMax);
-        } else {
-            if (sourceData[1][(heightValue) * (sourceWidth) + (widthValue)] >= SandbankRidgeOp.thresholdRidgeDetectionMin
-                    && edgeLinkedData[(heightValue) * (sourceWidth) + (widthValue)] == 0) {
-                //System.out.printf("EDGE: heightValue %d , widthValue %d) \n", heightValue, widthValue);
-                edgeLinkedData[(heightValue) * (sourceWidth) + (widthValue)] = 1;
-                centralValueMax = Math.max(sourceData[1][(heightValue) * (sourceWidth) + (widthValue)], centralValue);
-                preparedData[1][(heightValue) * (sourceWidth) + (widthValue)] = centralValueMax;
-                makeEdgeLinking(widthValue, heightValue, sourceWidth, sourceHeight, sourceData,
-                        preparedData, edgeLinkedData, centralValueMax);
+            if (linkingSwitch == true) {
+                edgeLinkedData[j_height * (sourceWidth) + i_width] = 1;
             }
         }
     }
 
+    private boolean makeEdgeLinkingPartTwo(int[] heightValue, int[] widthValue,
+                                           int arrayWidth, int arrayHeigth,
+                                           int[] sourceDataValue,
+                                           int[] edgeLinkedOriginalValue,
+                                           int[] edgeLinkedValue,
+                                           int[] edgeLinkedData,
+                                           int centralValue) {
+
+        boolean linkingSwitch = false;
+        int k;
+        int maxValue = BLUE_DUCK;
+        for (int jj = 0; jj < arrayHeigth; jj++) {
+            for (int ii = 1; ii < arrayWidth; ii++) {
+                k = jj * 3 + ii;
+                if (edgeLinkedOriginalValue[k] == 0) {
+                    maxValue = Math.max(sourceDataValue[k], centralValue);
+                }
+            }
+
+        }
+        if (maxValue == centralValue && maxValue != BLUE_DUCK) {
+            linkingSwitch = true;
+        }
+        return linkingSwitch;
+    }
 
 }

@@ -7,7 +7,8 @@ public class NonMaximumSuppressionHessian {
 
     public double[][] nonMaxSuppressionOfSourceBand(double[] sourceData,
                                                     int sourceWidth,
-                                                    int sourceHeight) {
+                                                    int sourceHeight,
+                                                    double nonMaxSuppressionThresholdHessian) {
 
         double[] nonMaxSuppressedData = new double[sourceWidth * sourceHeight];
         Arrays.fill(nonMaxSuppressedData, Double.NaN);
@@ -30,7 +31,7 @@ public class NonMaximumSuppressionHessian {
 
                 if (!Double.isNaN(sourceData[j * (sourceWidth) + i])) {
 
-                    if (sourceData[j * (sourceWidth) + i] > SandbankRidgeOp.nonMaxSuppressionThresholdHessian) {
+                    if (sourceData[j * (sourceWidth) + i] > nonMaxSuppressionThresholdHessian) {
                         maxValue = Double.MIN_VALUE;
                         memoryNewJ = j;
                         memoryNewI = i;

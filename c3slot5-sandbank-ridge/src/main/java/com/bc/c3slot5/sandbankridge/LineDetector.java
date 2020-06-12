@@ -42,6 +42,7 @@ public class LineDetector {
     public int[][] detectLines(double[] sourceArray,
                                int sourceHeight,
                                int sourceWidth,
+                               int thresholdRidgeDetection,
                                Tile targetTileSandBanksBelt) {
 
         int sourceLength = sourceWidth * sourceHeight;
@@ -106,7 +107,7 @@ public class LineDetector {
         for (int j = 1; j < sourceHeight - 1; j++) {
             for (int i = 1; i < sourceWidth - 1; i++) {
                 linesData[1][(j) * (sourceWidth) + (i)] = countsData[(j) * (sourceWidth) + (i)];
-                if (countsData[(j) * (sourceWidth) + (i)] > SandbankRidgeOp.thresholdRidgeDetection) {
+                if (countsData[(j) * (sourceWidth) + (i)] > thresholdRidgeDetection) {
                     linesData[0][(j) * (sourceWidth) + (i)] = 1;
                 }
             }
@@ -136,7 +137,7 @@ public class LineDetector {
                 }
             }
         }
-        if (maxValue > 0. || maxValue < 0.) {
+        if (maxValue > 0.0000001 || maxValue < -0.0000001) {
             values[0] = newI;
             values[1] = newJ;
         } else {
