@@ -29,6 +29,10 @@ public class EdgeLinkingHysteresisHessian {
             }
         }
 
+        SupressionOnePixelLine applySuppressOnePixelLine = new SupressionOnePixelLine();
+        applySuppressOnePixelLine.suppressOnePixelLine(edgeLinkedData,sourceWidth, sourceHeight);
+
+
         for (int j = 1; j < sourceHeight - 1; j++) {
             for (int i = 1; i < sourceWidth - 1; i++) {
                 gradientLinesData[0][j * (sourceWidth) + i] = 0.0;

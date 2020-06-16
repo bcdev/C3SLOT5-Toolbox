@@ -32,6 +32,7 @@ public class EdgeLinkingHysteresis {
         int[] edgeLinkedOriginalData = new int[sourceWidth * sourceHeight];
         Arrays.fill(edgeLinkedOriginalData, 0);
         int centralValue;
+        int thresholdRidgeDetectionMinIterate;
         /*- sourceData[1][..] = countsData; sourceData[0][..] = 0 or 1 */
         for (int j = 0; j < sourceHeight; j++) {
             for (int i = 0; i < sourceWidth; i++) {
@@ -46,8 +47,9 @@ public class EdgeLinkingHysteresis {
             for (int j = 1; j < sourceHeight; j++) {
                 for (int i = 1; i < sourceWidth; i++) {
                     centralValue = BLUE_DUCK;
+                    thresholdRidgeDetectionMinIterate=Math.max(1,thresholdRidgeDetectionMin-iterate);
                     if (edgeLinkedData[j * (sourceWidth) + i] == 0 &&
-                            sourceData[1][j * (sourceWidth) + i] >= thresholdRidgeDetectionMin) {
+                            sourceData[1][j * (sourceWidth) + i] >= thresholdRidgeDetectionMinIterate) {
 //                        System.out.printf("edgelinking_starts: heightValue %d , widthValue %d  count %d threshold %d) \n", j, i, sourceData[1][j * (sourceWidth) + i], thresholdRidgeDetectionMin);
 
                         centralValue = sourceData[1][j * (sourceWidth) + i];
@@ -55,8 +57,26 @@ public class EdgeLinkingHysteresis {
                     }
                 }
             }
-            //System.arraycopy(edgeLinkedData, 0, edgeLinkedOriginalData, 0, sourceData.length);
+//            for (int j = 1; j < sourceHeight; j++) {
+//                for (int i = 1; i < sourceWidth; i++) {
+//                    if (edgeLinkedData[j * (sourceWidth) + i] != edgeLinkedOriginalData[j * (sourceWidth) + i]) {
+//                        System.out.printf("edgelinking iterate %d: heightValue %d , widthValue %d  edgeLinkedData %d  edgeLinkedOriginalData %d) \n", iterate, j, i, edgeLinkedData[j * (sourceWidth) + i], edgeLinkedOriginalData[j * (sourceWidth) + i]);
+//                    }
+//                }
+//            }
+            System.arraycopy(edgeLinkedData, 0, edgeLinkedOriginalData, 0, edgeLinkedData.length);
+
+//            for (int j = 1; j < sourceHeight; j++) {
+//                for (int i = 1; i < sourceWidth; i++) {
+//                    if (edgeLinkedData[j * (sourceWidth) + i]!=edgeLinkedOriginalData[j * (sourceWidth) + i]) {
+//                        System.out.printf("________________-edgelinking iterate %d: heightValue %d , widthValue %d  edgeLinkedData %d  edgeLinkedOriginalData %d) \n", iterate, j, i, edgeLinkedData[j * (sourceWidth) + i], edgeLinkedOriginalData[j * (sourceWidth) + i]);
+//                    }
+//                }
+//            }
         }
+
+        SupressionOnePixelLine applySuppressOnePixelLine = new SupressionOnePixelLine();
+        applySuppressOnePixelLine.suppressOnePixelLine(edgeLinkedData,sourceWidth, sourceHeight);
 
         for (int j = 1; j < sourceHeight; j++) {
             for (int i = 1; i < sourceWidth; i++) {
@@ -86,7 +106,7 @@ public class EdgeLinkingHysteresis {
                                  int centralValue) {
 
 
-        if (j_height < sourceHeight - 1 && i_width < sourceWidth - 1 && j_height > 1 && i_width > 1) {
+        if (j_height < sourceHeight - 1 && i_width < sourceWidth - 1 && j_height >= 1 && i_width >= 1) {
             int arrayWidth = 3;
             int arrayHeigth = 3;
             int arrayLength = arrayWidth * arrayHeigth;

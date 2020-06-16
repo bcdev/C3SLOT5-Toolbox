@@ -50,12 +50,12 @@ public class SandbankRidgeOp extends Operator {
     private String flagBandName;
 
 
-    @Parameter(defaultValue = "1.0",
+    @Parameter(defaultValue = "0.5",
             label = " Ridge Magnitude Threshold - Hessian approach",
             description = " Ridge Magnitude Threshold - Hessian approach ")
     private double nonMaxSuppressionThresholdHessian;
 
-    @Parameter(defaultValue = "6",
+    @Parameter(defaultValue = "9",
             label = " Ridge Magnitude Threshold - Steepness approach ",
             description = "  Ridge Magnitude Threshold - Steepness approach ")
     private int thresholdRidgeDetection;
@@ -214,7 +214,7 @@ public class SandbankRidgeOp extends Operator {
         int sourceLength = sourceRectangle.width * sourceRectangle.height;
 
         thresholdRidgeDetectionMax = thresholdRidgeDetection;
-        thresholdRidgeDetectionMin = thresholdRidgeDetection - (int) Math.floor(0.3 * thresholdRidgeDetection);
+        thresholdRidgeDetectionMin = thresholdRidgeDetection - (int) Math.floor(0.2 * thresholdRidgeDetection);
 
 
         final double[] sourceArray = sourceTile.getSamplesDouble();
