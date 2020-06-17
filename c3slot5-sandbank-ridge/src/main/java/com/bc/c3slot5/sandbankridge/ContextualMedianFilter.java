@@ -85,8 +85,7 @@ public class ContextualMedianFilter implements Filter {
                 }
             }
         }
-        /*FrontsOperator.makeFilledBand(preparedData, sourceWidth, sourceHeight,
-                targetBandFilter, FrontsOperator.maxKernelRadius); */
+
 
         System.arraycopy(preparedData, 0, sourceData, 0, sourceData.length);
 

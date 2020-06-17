@@ -1,6 +1,5 @@
 package com.bc.c3slot5.sandbankridge;
 
-import java.util.Arrays;
 
 public class SupressionOnePixelLine {
 
@@ -44,4 +43,5 @@ public class SupressionOnePixelLine {
         System.arraycopy(sourceDataCopy, 0, sourceData, 0, sourceDataCopy.length);
     }
 }
+
 

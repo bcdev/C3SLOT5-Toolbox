@@ -1,6 +1,7 @@
 package com.bc.c3slot5.sandbankridge;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class NonMaximumSuppressionHessian {
 
@@ -8,7 +9,9 @@ public class NonMaximumSuppressionHessian {
     public double[][] nonMaxSuppressionOfSourceBand(double[] sourceData,
                                                     int sourceWidth,
                                                     int sourceHeight,
-                                                    double nonMaxSuppressionThresholdHessian) {
+                                                    double nonMaxSuppressionThresholdHessian,
+                                                    String filterTypeHessian,
+                                                    String filterTypeHessianUsed) {
 
         double[] nonMaxSuppressedData = new double[sourceWidth * sourceHeight];
         Arrays.fill(nonMaxSuppressedData, Double.NaN);
@@ -23,9 +26,9 @@ public class NonMaximumSuppressionHessian {
         int memoryNewI;
 
         for (int j = SandbankRidgeOp.nonMaxSuppressionKernelRadius;
-             j < sourceHeight - SandbankRidgeOp.nonMaxSuppressionKernelRadius; j=j+2) {
+             j < sourceHeight - SandbankRidgeOp.nonMaxSuppressionKernelRadius; j = j + 2) {
             for (int i = SandbankRidgeOp.nonMaxSuppressionKernelRadius;
-                 i < sourceWidth - SandbankRidgeOp.nonMaxSuppressionKernelRadius; i=i+2) {
+                 i < sourceWidth - SandbankRidgeOp.nonMaxSuppressionKernelRadius; i = i + 2) {
 
                 finalResultData[0][j * (sourceWidth) + i] = sourceData[j * (sourceWidth) + i];
 
@@ -54,8 +57,22 @@ public class NonMaximumSuppressionHessian {
                 }
             }  /* endfor i*/
         } /* endfor j*/
+        if (filterTypeHessianUsed.equals(filterTypeHessian)) {
+            int mkr;
+            mkr = SandbankRidgeOp.gaussFilterKernelRadius + 2 + 1;
+            for (int j = 0; j < sourceHeight; j++) {
+                for (int i = 0; i < sourceWidth; i++) {
+                    if ((j == mkr && (i >= mkr && i <= sourceWidth - (mkr + 1))) ||
+                            (j == sourceHeight - (mkr + 2) && (i >= mkr && i <= sourceWidth - (mkr + 1))) ||
+                            (i == mkr && (j >= mkr && j <= sourceHeight - (mkr + 1))) ||
+                            (i == sourceWidth - (mkr + 1) && (j >= mkr && j <= sourceHeight - (mkr + 1)))) {
+                        nonMaxSuppressedData[j * (sourceWidth) + i] = Double.NaN;
+                    }
 
-        for (int k = 0; k < sourceHeight*sourceWidth; k++) {
+                }
+            }
+        }
+        for (int k = 0; k < sourceHeight * sourceWidth; k++) {
             finalResultData[1][k] = nonMaxSuppressedData[k];
         }
         return finalResultData;
