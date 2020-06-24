@@ -3,10 +3,12 @@ package com.bc.c3slot5.sandbankridge;
 import org.esa.snap.core.gpf.Tile;
 
 import java.util.Arrays;
+import java.awt.*;
 
 public class EdgeLinkingHysteresisHessian {
 
     public int[] edgeLinkingOfSourceBand(
+            Rectangle targetRectangle,
             double[][] sourceData,
             double[][] gradientSourceData,
             int sourceWidth,
@@ -46,7 +48,7 @@ public class EdgeLinkingHysteresisHessian {
         }
 
 
-        SandbankRidgeOp.makeFilledBand(gradientLinesData, sourceWidth, sourceHeight,
+        SandbankRidgeOp.makeFilledBand(gradientLinesData, targetRectangle, sourceWidth, sourceHeight,
                 targetTileSandBanksBeltMagHessian, targetTileSandBanksBeltDirHessian, SandbankRidgeOp.maxKernelRadius);
 
 

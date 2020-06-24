@@ -3,6 +3,7 @@ package com.bc.c3slot5.sandbankridge;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.esa.snap.core.gpf.Tile;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -11,6 +12,7 @@ public class EdgeLinkingHysteresis {
     static final int BLUE_DUCK = -255;
 
     public int[] edgeLinkingOfSourceBand(
+            Rectangle targetRectangle,
             int[][] sourceData,
             double[][] gradientSourceData,
             int sourceWidth,
@@ -89,7 +91,7 @@ public class EdgeLinkingHysteresis {
             }
         }
 
-        SandbankRidgeOp.makeFilledBand(gradientLinesData, sourceWidth, sourceHeight,
+        SandbankRidgeOp.makeFilledBand(gradientLinesData, targetRectangle,sourceWidth, sourceHeight,
                 targetTileSandBanksBeltMag, targetTileSandBanksBeltDir, SandbankRidgeOp.maxKernelRadius);
 
 

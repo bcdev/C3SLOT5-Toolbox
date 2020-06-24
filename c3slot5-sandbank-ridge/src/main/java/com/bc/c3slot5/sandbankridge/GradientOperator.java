@@ -2,18 +2,23 @@ package com.bc.c3slot5.sandbankridge;
 
 import org.esa.snap.core.gpf.Tile;
 
+import java.awt.*;
 import java.util.Arrays;
 
 
 public class GradientOperator {
 
 
-    public double[][] computeGradient(double[] sourceData,
+    public double[][] computeGradient(Rectangle targetRectangle,
+                                      double[] sourceData,
                                       int sourceWidth,
                                       int sourceHeight,
                                       int[] flagArray,
                                       Tile targetTileGradientMagnitude,
-                                      Tile targetTileGradientDirection, double kernelEdgeValue, double kernelCentreValue, double weightingFactor) {
+                                      Tile targetTileGradientDirection,
+                                      double kernelEdgeValue,
+                                      double kernelCentreValue,
+                                      double weightingFactor) {
 
 
         int sourceLength = sourceWidth * sourceHeight;
@@ -58,9 +63,9 @@ public class GradientOperator {
             }
         }
 
-        SandbankRidgeOp.makeFilledBand(gradientMagnitudeArray, sourceWidth, sourceHeight,
+        SandbankRidgeOp.makeFilledBand(gradientMagnitudeArray, targetRectangle, sourceWidth, sourceHeight,
                 targetTileGradientMagnitude, SandbankRidgeOp.maxKernelRadius);
-        SandbankRidgeOp.makeFilledBand(gradientDirectionArray, sourceWidth, sourceHeight
+        SandbankRidgeOp.makeFilledBand(gradientDirectionArray, targetRectangle, sourceWidth, sourceHeight
                 , targetTileGradientDirection, SandbankRidgeOp.maxKernelRadius);
 
         return gradientData;

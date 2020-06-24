@@ -25,6 +25,7 @@ package com.bc.c3slot5.sandbankridge;
 import org.esa.snap.core.gpf.Tile;
 
 import java.util.Arrays;
+import java.awt.*;
 
 /**
  * The Class LineDetector.
@@ -39,16 +40,17 @@ public class LineDetectorHessian {
      * @return An array with lines
      */
 
-    public double[][] detectLines(double[] sourceArray,
-                                int[] flagArray,
-                                int sourceHeight,
-                                int sourceWidth,
-                                double nonMaxSuppressionThresholdHessian,
-                                double kernelEdgeValue,
-                                double kernelCentreValue,
-                                Tile targetTileSandBanksBeltHessian,
-                                String filterTypeHessian,
-                                String filterTypeHessianUsed) {
+    public double[][] detectLines(Rectangle targetRectangle,
+                                  double[] sourceArray,
+                                  int[] flagArray,
+                                  int sourceHeight,
+                                  int sourceWidth,
+                                  double nonMaxSuppressionThresholdHessian,
+                                  double kernelEdgeValue,
+                                  double kernelCentreValue,
+                                  Tile targetTileSandBanksBeltHessian,
+                                  String filterTypeHessian,
+                                  String filterTypeHessianUsed) {
 
         int sourceLength = sourceWidth * sourceHeight;
 
@@ -67,7 +69,7 @@ public class LineDetectorHessian {
         double[] hxData = new double[sourceLength];
         double[] hyData = new double[sourceLength];
         double[] majorEigenValueHessian = new double[sourceLength];
-        Arrays.fill(majorEigenValueHessian,Double.NaN);
+        Arrays.fill(majorEigenValueHessian, Double.NaN);
 
 
         for (int y = 0; y < sourceHeight; y++) {
@@ -85,8 +87,8 @@ public class LineDetectorHessian {
         for (int y = 0; y < sourceHeight; y++) {
             for (int x = 0; x < sourceWidth; x++) {
                 valueIntermediate = (Math.pow(xxData[x][y], 2) + 4. * Math.pow(xyData[x][y], 2) -
-                                2 * xxData[x][y] * yyData[x][y] + Math.pow(yyData[x][y], 2));
-                if (valueIntermediate>=0 ) {
+                        2 * xxData[x][y] * yyData[x][y] + Math.pow(yyData[x][y], 2));
+                if (valueIntermediate >= 0) {
                     majorEigenValueHessian[y * (sourceWidth) + x] =
                             0.5 * (xxData[x][y] + yyData[x][y] + Math.sqrt(valueIntermediate));
                 }
@@ -104,9 +106,8 @@ public class LineDetectorHessian {
                 filterTypeHessianUsed);
 
 
-        SandbankRidgeOp.makeFilledBand(majorEigenValueHessianData, sourceWidth, sourceHeight,
-                targetTileSandBanksBeltHessian, 1,SandbankRidgeOp.maxKernelRadius);
-
+        SandbankRidgeOp.makeFilledBand(majorEigenValueHessianData, targetRectangle, sourceWidth, sourceHeight,
+                targetTileSandBanksBeltHessian, 1, SandbankRidgeOp.maxKernelRadius);
 
 
         return majorEigenValueHessianData;

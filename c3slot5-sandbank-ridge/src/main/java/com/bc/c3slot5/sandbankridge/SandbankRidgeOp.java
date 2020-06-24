@@ -1,6 +1,7 @@
 package com.bc.c3slot5.sandbankridge;
 
 import com.bc.ceres.core.ProgressMonitor;
+import org.apache.commons.lang.ObjectUtils;
 import org.esa.snap.core.datamodel.Band;
 import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.core.datamodel.ProductData;
@@ -17,6 +18,7 @@ import org.esa.snap.core.util.ProductUtils;
 
 import javax.media.jai.BorderExtenderConstant;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Map;
 
 
@@ -37,7 +39,7 @@ public class SandbankRidgeOp extends Operator {
     @Parameter(rasterDataNodeType = Band.class)
     private String sourceBandName;
 
-    @Parameter(rasterDataNodeType = Band.class)
+    @Parameter(rasterDataNodeType = Band.class, description = "optional")
     private String flagBandName;
 
 
@@ -115,7 +117,7 @@ public class SandbankRidgeOp extends Operator {
     static final int laplaceFilterKernelRadius = 2;
     static final int convolutionFilterKernelRadius = 1;
     static final int nonMaxSuppressionKernelRadius = 1;
-    static final int maxKernelRadius = 0; //30;
+    static final int maxKernelRadius = 10; //30;
     static final int minKernelRadius = 0;
 
     private double maxFrontBeltMagnitude = 0.;
@@ -176,8 +178,10 @@ public class SandbankRidgeOp extends Operator {
 
         BorderExtenderConstant borderExtenderNaN = new BorderExtenderConstant(new double[]{Double.NaN});
         Tile sourceTile = getSourceTile(sourceProduct.getBand(sourceBandName), sourceRectangle, borderExtenderNaN);
-        Tile flagTile = getSourceTile(sourceProduct.getBand(flagBandName), sourceRectangle, borderExtenderNaN);
-
+        Tile flagTile = null;
+        if (flagBandName != null) {
+            flagTile = getSourceTile(sourceProduct.getBand(flagBandName), sourceRectangle, borderExtenderNaN);
+        }
         Tile targetTileCopySourceBand = targetTiles.get(targetBandCopySourceBand);
         Tile targetTileGradientMagnitude = targetTiles.get(targetBandGradientMagnitude);
         Tile targetTileGradientDirection = targetTiles.get(targetBandGradientDirection);
@@ -202,19 +206,24 @@ public class SandbankRidgeOp extends Operator {
 
 
         final double[] sourceArray = sourceTile.getSamplesDouble();
-        final int[] flagArray = flagTile.getSamplesInt();
-
+        final int[] flagArray;
+        if (flagTile != null) {
+            flagArray = flagTile.getSamplesInt();
+        } else {
+            flagArray = new int[sourceLength];
+            Arrays.fill(flagArray, 0);
+        }
         PreparingOfSourceBand preparedSourceBand = new PreparingOfSourceBand();
         preparedSourceBand.preparedOfSourceBand(sourceArray,
                 sourceWidth,
                 sourceHeight,
                 flagArray);
 
-        makeFilledBand(sourceArray, sourceWidth, sourceHeight, targetTileCopySourceBand, maxKernelRadius);
+        makeFilledBand(sourceArray,targetRectangle, sourceWidth, sourceHeight, targetTileCopySourceBand, maxKernelRadius);
 
         // Pepraring Source Band - Land/Cloud detection
         // Filling
-        makeFilledBand(flagArray, sourceWidth, sourceHeight, targetTileBandFlag, SandbankRidgeOp.maxKernelRadius);
+        makeFilledBand(flagArray, targetRectangle, sourceWidth, sourceHeight, targetTileBandFlag, SandbankRidgeOp.maxKernelRadius);
         // copy source data for histogram method
 
 
@@ -224,7 +233,7 @@ public class SandbankRidgeOp extends Operator {
 
         /* Convolution with Gradient-Operator */
         GradientOperator gradient = new GradientOperator();
-        double[][] gradientSourceData = gradient.computeGradient(sourceArray,
+        double[][] gradientSourceData = gradient.computeGradient(targetRectangle,sourceArray,
                 sourceWidth,
                 sourceHeight,
                 flagArray,
@@ -259,14 +268,15 @@ public class SandbankRidgeOp extends Operator {
 
         /* LineDetector - linesData[1][..] = countsData; linesData[0][..] = 0 or 1*/
         LineDetector lineDetector = new LineDetector();
-        int[][] linesSourceData = lineDetector.detectLines(ridgeDetectorSourceData,
+        int[][] linesSourceData = lineDetector.detectLines(targetRectangle,
+                ridgeDetectorSourceData,
                 sourceHeight,
                 sourceWidth,
                 thresholdRidgeDetection,
                 targetTileSandBanksBelt);
 
         EdgeLinkingHysteresis edgeLinkingOfSourceBand = new EdgeLinkingHysteresis();
-        int[] edgeLinkedData = edgeLinkingOfSourceBand.edgeLinkingOfSourceBand(
+        int[] edgeLinkedData = edgeLinkingOfSourceBand.edgeLinkingOfSourceBand(targetRectangle,
                 linesSourceData,
                 gradientSourceData,
                 sourceWidth,
@@ -277,7 +287,7 @@ public class SandbankRidgeOp extends Operator {
                 targetTileSandBanksBeltMag,
                 targetTileSandBanksBeltDir);
 
-        makeFilledBand(edgeLinkedData, sourceWidth, sourceHeight, targetTileSandBanksBeltLinked, maxKernelRadius);
+        makeFilledBand(edgeLinkedData,targetRectangle, sourceWidth, sourceHeight, targetTileSandBanksBeltLinked, maxKernelRadius);
 
 
         /**************************************************************************/
@@ -296,7 +306,8 @@ public class SandbankRidgeOp extends Operator {
         filterTypeHessianUsed = GAUSS_FILTER;
         /* LineDetector */
         LineDetectorHessian lineDetectorHessian = new LineDetectorHessian();
-        double[][] linesSourceDataHessian = lineDetectorHessian.detectLines(ridgeDetectorSourceDataHessian,
+        double[][] linesSourceDataHessian = lineDetectorHessian.detectLines(targetRectangle,
+                ridgeDetectorSourceDataHessian,
                 flagArray,
                 sourceHeight,
                 sourceWidth,
@@ -308,7 +319,7 @@ public class SandbankRidgeOp extends Operator {
                 filterTypeHessianUsed);
 
         EdgeLinkingHysteresisHessian edgeLinkingOfSourceBandHessian = new EdgeLinkingHysteresisHessian();
-        int[] edgeLinkedDataHessian = edgeLinkingOfSourceBandHessian.edgeLinkingOfSourceBand(
+        int[] edgeLinkedDataHessian = edgeLinkingOfSourceBandHessian.edgeLinkingOfSourceBand(targetRectangle,
                 linesSourceDataHessian,
                 gradientSourceData,
                 sourceWidth,
@@ -316,11 +327,12 @@ public class SandbankRidgeOp extends Operator {
                 targetTileSandBanksBeltMagHessian,
                 targetTileSandBanksBeltDirHessian);
 
-        makeFilledBand(edgeLinkedDataHessian, sourceWidth, sourceHeight, targetTileSandBanksBeltLinkedHessian, maxKernelRadius);
+        makeFilledBand(edgeLinkedDataHessian,targetRectangle, sourceWidth, sourceHeight, targetTileSandBanksBeltLinkedHessian, maxKernelRadius);
 
 
         CombineSteepnessHessianRidge combinedSteepnessHessian = new CombineSteepnessHessianRidge();
-        combinedSteepnessHessian.combineResults(edgeLinkedData,
+        combinedSteepnessHessian.combineResults(targetRectangle,
+                edgeLinkedData,
                 edgeLinkedDataHessian,
                 sourceWidth,
                 sourceHeight,
@@ -395,65 +407,81 @@ public class SandbankRidgeOp extends Operator {
     }
 
     static void makeFilledBand(double[] inputData,
+                               Rectangle targetRectangle,
                                int inputDataWidth,
                                int inputDataHeight,
                                Tile targetTileOutputBand,
                                int mkr) {
+        int xLocation = targetRectangle.x;
+        int yLocation = targetRectangle.y;
         for (int y = mkr; y < inputDataHeight - mkr; y++) {
             for (int x = mkr; x < inputDataWidth - mkr; x++) {
-                targetTileOutputBand.setSample(x - mkr, y - mkr, inputData[y * (inputDataWidth) + x]);
+                targetTileOutputBand.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[y * (inputDataWidth) + x]);
             }
         }
     }
 
+
     static void makeFilledBand(double[][] inputData,
+                               Rectangle targetRectangle,
                                int inputDataWidth,
                                int inputDataHeight,
                                Tile targetTileOutputBand1,
                                Tile targetTileOutputBand2,
                                int mkr) {
+        int xLocation = targetRectangle.x;
+        int yLocation = targetRectangle.y;
         for (int y = mkr; y < inputDataHeight - mkr; y++) {
             for (int x = mkr; x < inputDataWidth - mkr; x++) {
-                targetTileOutputBand1.setSample(x - mkr, y - mkr, inputData[0][y * (inputDataWidth) + x]);
-                targetTileOutputBand2.setSample(x - mkr, y - mkr, inputData[1][y * (inputDataWidth) + x]);
+                targetTileOutputBand1.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[0][y * (inputDataWidth) + x]);
+                targetTileOutputBand2.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[1][y * (inputDataWidth) + x]);
             }
         }
     }
 
     static void makeFilledBand(double[][] inputData,
+                               Rectangle targetRectangle,
                                int inputDataWidth,
                                int inputDataHeight,
                                Tile targetTileOutputBand,
                                int index,
                                int mkr) {
+        int xLocation = targetRectangle.x;
+        int yLocation = targetRectangle.y;
         for (int y = mkr; y < inputDataHeight - mkr; y++) {
             for (int x = mkr; x < inputDataWidth - mkr; x++) {
-                targetTileOutputBand.setSample(x - mkr, y - mkr, inputData[index][y * (inputDataWidth) + x]);
+                targetTileOutputBand.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[index][y * (inputDataWidth) + x]);
             }
         }
     }
 
     static void makeFilledBand(int[][] inputData,
+                               Rectangle targetRectangle,
                                int inputDataWidth,
                                int inputDataHeight,
                                Tile targetTileOutputBand,
                                int index,
                                int mkr) {
+        int xLocation = targetRectangle.x;
+        int yLocation = targetRectangle.y;
         for (int y = mkr; y < inputDataHeight - mkr; y++) {
             for (int x = mkr; x < inputDataWidth - mkr; x++) {
-                targetTileOutputBand.setSample(x - mkr, y - mkr, inputData[index][y * (inputDataWidth) + x]);
+                targetTileOutputBand.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[index][y * (inputDataWidth) + x]);
             }
         }
     }
 
     static void makeFilledBand(int[] inputData,
+                               Rectangle targetRectangle,
                                int inputDataWidth,
                                int inputDataHeight,
                                Tile targetTileOutputBand,
                                int mkr) {
+        int xLocation = targetRectangle.x;
+        int yLocation = targetRectangle.y;
         for (int y = mkr; y < inputDataHeight - mkr; y++) {
             for (int x = mkr; x < inputDataWidth - mkr; x++) {
-                targetTileOutputBand.setSample(x - mkr, y - mkr, inputData[y * (inputDataWidth) + x]);
+                targetTileOutputBand.setSample(x + xLocation - mkr, y + yLocation - mkr, inputData[y * (inputDataWidth) + x]);
             }
         }
     }

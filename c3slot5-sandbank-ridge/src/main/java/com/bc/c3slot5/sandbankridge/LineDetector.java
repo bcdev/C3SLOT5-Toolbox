@@ -24,6 +24,7 @@ package com.bc.c3slot5.sandbankridge;
 
 import org.esa.snap.core.gpf.Tile;
 
+import java.awt.*;
 import java.util.Arrays;
 
 /**
@@ -39,7 +40,8 @@ public class LineDetector {
      * @return An array with lines
      */
 
-    public int[][] detectLines(double[] sourceArray,
+    public int[][] detectLines(Rectangle targetRectangle,
+                               double[] sourceArray,
                                int sourceHeight,
                                int sourceWidth,
                                int thresholdRidgeDetection,
@@ -113,7 +115,7 @@ public class LineDetector {
             }
         }
 
-        SandbankRidgeOp.makeFilledBand(countsData, sourceWidth, sourceHeight,
+        SandbankRidgeOp.makeFilledBand(countsData, targetRectangle,sourceWidth, sourceHeight,
                 targetTileSandBanksBelt, SandbankRidgeOp.maxKernelRadius);
 
         return linesData;
