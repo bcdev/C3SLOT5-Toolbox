@@ -25,8 +25,8 @@ import java.util.Map;
 @OperatorMetadata(alias = "Sandbankridge",
         label = "C3S LOT5 S2 SandBank ridge",
         authors = "GK",
-        copyright = "Brockmann Consult",
-        version = "0.1")
+        copyright = "Brockmann Consult GmbH",
+        version = "0.7-SNAPSHOT")
 
 public class SandbankRidgeOp extends Operator {
 

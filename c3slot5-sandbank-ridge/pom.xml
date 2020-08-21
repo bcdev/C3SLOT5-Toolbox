@@ -12,6 +12,7 @@
 	
     <name>C3SLOT5 Sandbank Ridge</name>
     <artifactId>c3slot5-sandbank-ridge</artifactId>
+    <version>0.7-SNAPSHOT</version>
     <packaging>nbm</packaging>
 
     <description>C3SLOT5 Sandbank Ridge</description>
