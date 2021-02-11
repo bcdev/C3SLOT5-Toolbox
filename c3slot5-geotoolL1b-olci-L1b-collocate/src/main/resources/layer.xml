@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+
+    <folder name="Actions">
+        <folder name="Operators">
+            <file name="com-bc-c3slot5-geotoolL1b-OpAction.instance">
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="delegate" methodvalue="org.esa.snap.core.gpf.ui.DefaultOperatorAction.create"/>
+                <attr name="operatorName" stringvalue="GeoToolOlciL1b"/>
+                <attr name="displayName" stringvalue="Comparison OLCI L1b"/>
+                <attr name="dialogTitle" stringvalue="Comparison OLCI L1b Processor"/>
+                <attr name="targetProductNameSuffix" stringvalue="_comp"/>
+                <attr name="helpId" stringvalue=""/>
+            </file>
+        </folder>
+    </folder>
+
+    <folder name="Menu">
+        <folder name="Optical">
+            <file name="com-bc-c3slot5-geotoolL1b-OpAction.shadow">
+                <attr name="originalFile"
+                      stringvalue="Actions/Operators/com-bc-c3slot5-geotoolL1b-OpAction.instance"/>
+                <attr name="position" intvalue="1"/>
+            </file>
+        </folder>
+    </folder>
+</filesystem>

@@ -14,6 +14,9 @@
 
     <modules>
         <module>c3slot5-comparison-composite</module>
+        <module>c3slot5-geotool-olci-1d-sr-composite</module>
+        <module>c3slot5-geotoolL1b-olci-L1b-collocate</module>
+        <module>c3slot5-olci_rgb_channel</module>
         <module>c3slot5-sandbank</module>
         <module>c3slot5-sandbank-ridge</module>
     </modules>
@@ -21,7 +24,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <snap.version>7.0.4</snap.version>
+        <snap.version>6.0.7</snap.version>
     </properties>
 
     <dependencyManagement>
@@ -61,7 +64,11 @@
                 <artifactId>snap-gpf</artifactId>
                 <version>${snap.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.esa.snap</groupId>
+                <artifactId>snap-collocation</artifactId>
+                <version>${snap.version}</version>
+            </dependency>
             <dependency>
                 <groupId>net.sf</groupId>
                 <artifactId>javaml</artifactId>

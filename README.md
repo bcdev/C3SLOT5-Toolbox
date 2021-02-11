@@ -1,4 +1,4 @@
-# S2GM Toolbox
+# C3S-LOT5  Toolbox
 Collection of tools of the C3SLOT5 project
 
 To create the run configuration in IDEA follow these steps:
