@@ -7,7 +7,7 @@
     <name>C3SLOT5-Toolbox</name>
     <groupId>com.bc.c3slot5</groupId>
     <artifactId>c3slot5-toolbox</artifactId>
-    <version>0.6</version>
+    <version>0.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>Toolbox for the C3S-LOT5 project</description>
