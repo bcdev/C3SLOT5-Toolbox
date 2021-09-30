@@ -7,7 +7,7 @@
 	<parent>
         <groupId>com.bc.c3slot5</groupId>
         <artifactId>c3slot5-toolbox</artifactId>
-        <version>0.6-SNAPSHOT</version>
+        <version>0.6</version>
     </parent>
 	
     <name>C3SLOT5 GeoTool OLCI 1d-SR-Composite</name>

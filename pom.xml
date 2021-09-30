@@ -7,7 +7,7 @@
     <name>C3SLOT5-Toolbox</name>
     <groupId>com.bc.c3slot5</groupId>
     <artifactId>c3slot5-toolbox</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
     <packaging>pom</packaging>
 
     <description>Toolbox for the C3S-LOT5 project</description>
@@ -16,7 +16,8 @@
         <module>c3slot5-comparison-composite</module>
         <module>c3slot5-geotool-olci-1d-sr-composite</module>
         <module>c3slot5-geotoolL1b-olci-L1b-collocate</module>
-        <module>c3slot5-olci_rgb_channel</module>
+<!-- Not existing        -->
+<!--        <module>c3slot5-olci_rgb_channel</module>-->
         <module>c3slot5-sandbank</module>
         <module>c3slot5-sandbank-ridge</module>
     </modules>
@@ -24,7 +25,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <snap.version>6.0.7</snap.version>
+        <snap.version>8.0.7</snap.version>
     </properties>
 
     <dependencyManagement>
@@ -78,7 +79,7 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <version>4.13.1</version>
                 <scope>test</scope>
             </dependency>
 
