@@ -16,8 +16,7 @@
         <module>c3slot5-comparison-composite</module>
         <module>c3slot5-geotool-olci-1d-sr-composite</module>
         <module>c3slot5-geotoolL1b-olci-L1b-collocate</module>
-<!-- Not existing        -->
-<!--        <module>c3slot5-olci_rgb_channel</module>-->
+        <module>c3slot5-olci_rgb_channel</module>
         <module>c3slot5-sandbank</module>
         <module>c3slot5-sandbank-ridge</module>
     </modules>
