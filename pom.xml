@@ -16,7 +16,10 @@
         <module>c3slot5-comparison-composite</module>
         <module>c3slot5-geotool-olci-1d-sr-composite</module>
         <module>c3slot5-geotoolL1b-olci-L1b-collocate</module>
-        <module>c3slot5-olci_rgb_channel</module>
+        <module>c3slot5-geotoolSYN</module>
+        <module>c3slot5-olciP1Drules</module>
+<!-- Not existing        -->
+<!--        <module>c3slot5-olci_rgb_channel</module>-->
         <module>c3slot5-sandbank</module>
         <module>c3slot5-sandbank-ridge</module>
     </modules>
@@ -24,7 +27,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <snap.version>8.0.7</snap.version>
+        <snap.version>8.0.0</snap.version>
     </properties>
 
     <dependencyManagement>
@@ -141,7 +144,7 @@
         <repository>
             <id>snap-repo-public</id>
             <name>Public Maven Repository for SNAP</name>
-            <url>http://nexus.senbox.net/nexus/content/repositories/public/</url>
+            <url>https://snap-build-server.tilaa.cloud/nexus/repository/snap-maven-public/</url>
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
@@ -157,7 +160,7 @@
         <pluginRepository>
             <id>snap-repo-public</id>
             <name>Public Maven Repository for SNAP</name>
-            <url>http://nexus.senbox.net/nexus/content/repositories/public/</url>
+            <url>https://snap-build-server.tilaa.cloud/nexus/repository/snap-maven-public/</url>
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
